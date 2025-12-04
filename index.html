@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Analyzer - Loan Calculator & Profitability</title>
+    <style>
+        :root {
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-red-500: rgba(192, 21, 47, 1);
+            --color-red-400: rgba(255, 84, 89, 1);
+            --color-orange-500: rgba(168, 75, 47, 1);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-background: rgba(248, 250, 252, 1);
+            --color-surface: rgba(255, 255, 255, 1);
+            --color-text: rgba(15, 23, 42, 1);
+            --color-text-secondary: rgba(71, 85, 105, 1);
+            --color-border: rgba(51, 65, 85, 0.12);
+            --color-success: var(--color-teal-500);
+            --color-error: var(--color-red-500);
+            --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --radius-base: 8px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: var(--space-20);
+            font-family: var(--font-family-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin: 0 0 var(--space-8) 0;
+            font-weight: 700;
+            color: var(--color-text);
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-24);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-12);
+            margin-bottom: var(--space-24);
+            padding: var(--space-20);
+            background-color: var(--color-surface);
+            border-radius: var(--radius-base);
+            border: 1.5px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-8);
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="number"],
+        select {
+            padding: var(--space-12) var(--space-16);
+            border: 1.5px solid var(--color-border);
+            border-radius: var(--radius-base);
+            font-size: 14px;
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            font-family: var(--font-family-base);
+            transition: all 250ms ease;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(33, 128, 141, 0.15);
+        }
+
+        button {
+            padding: var(--space-12) var(--space-20);
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 250ms ease;
+            font-family: var(--font-family-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:hover {
+            background-color: var(--color-primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+            opacity: 0.95;
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--space-12);
+            margin-top: var(--space-8);
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-24);
+        }
+
+        .result-card {
+            padding: var(--space-20);
+            background-color: var(--color-surface);
+            border-radius: var(--radius-base);
+            border: 1.5px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            transition: all 250ms ease;
+        }
+
+        .result-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: rgba(33, 128, 141, 0.25);
+        }
+
+        .result-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: var(--space-8);
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-family: monospace;
+            margin-bottom: var(--space-12);
+        }
+
+        .result-details {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-8);
+            font-size: 13px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-8) 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--color-text-secondary);
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--color-text);
+            font-family: monospace;
+        }
+
+        .section {
+            margin-bottom: var(--space-24);
+            padding: var(--space-20);
+            background-color: var(--color-surface);
+            border-radius: var(--radius-base);
+            border: 1.5px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section h2 {
+            font-size: 18px;
+            margin: 0 0 var(--space-16) 0;
+            color: var(--color-text);
+            font-weight: 700;
+        }
+
+        .amortization-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: var(--space-12);
+        }
+
+        .amortization-table thead {
+            background-color: rgba(33, 128, 141, 0.1);
+        }
+
+        .amortization-table th {
+            padding: var(--space-12);
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .amortization-table td {
+            padding: var(--space-12);
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text);
+            font-family: monospace;
+        }
+
+        .amortization-table tr:hover {
+            background-color: rgba(33, 128, 141, 0.05);
+        }
+
+        .amortization-scroll {
+            overflow-x: auto;
+            margin-top: var(--space-12);
+            border-radius: var(--radius-base);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-24);
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-8);
+            margin-bottom: var(--space-16);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .tab-btn {
+            padding: var(--space-12) var(--space-16);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--color-text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 250ms ease;
+        }
+
+        .tab-btn.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-btn:hover {
+            color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Input Tabs (for input section only) */
+        .input-tabs {
+            display: flex;
+            gap: var(--space-8);
+            margin-bottom: var(--space-16);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .input-tab-btn {
+            padding: var(--space-8) var(--space-12);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--color-text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 250ms ease;
+        }
+
+        .input-tab-btn.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .input-tab-btn:hover {
+            color: var(--color-primary);
+        }
+
+        .input-tab-content {
+            display: none;
+        }
+
+        .input-tab-content.active {
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-12);
+            margin-bottom: var(--space-24);
+            flex-wrap: wrap;
+        }
+
+        .quick-sba {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-8);
+        }
+
+        .sba-btn {
+            padding: var(--space-10) var(--space-12);
+            font-size: 12px;
+            background-color: rgba(33, 128, 141, 0.1);
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all 250ms ease;
+            font-weight: 500;
+        }
+
+        .sba-btn:hover {
+            background-color: rgba(33, 128, 141, 0.2);
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, rgba(33, 128, 141, 0.1) 0%, rgba(33, 128, 141, 0.05) 100%);
+            padding: var(--space-16);
+            border-radius: var(--radius-base);
+            border-left: 4px solid var(--color-primary);
+            margin-top: var(--space-16);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-12);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-item-label {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+        }
+
+        .summary-item-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-family: monospace;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: rgba(31, 33, 33, 1);
+                --color-surface: rgba(38, 40, 40, 1);
+                --color-text: rgba(245, 245, 245, 1);
+                --color-text-secondary: rgba(167, 169, 169, 1);
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-primary: rgba(50, 184, 198, 1);
+                --color-primary-hover: rgba(45, 166, 178, 1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-20);">
+            <div>
+                <h1>💰 Deal Analyzer</h1>
+                <p class="subtitle">Comprehensive loan analysis, profitability modeling & SBA program evaluation</p>
+            </div>
+        </div>
+
+        <!-- Input Section (Tabbed) -->
+        <div class="section">
+            <div class="input-tabs">
+                <button class="input-tab-btn active" onclick="switchInputTab('coreInputs', event)">Core Deal</button>
+                <button class="input-tab-btn" onclick="switchInputTab('policyInputs', event)">Policy & Stress</button>
+                <button class="input-tab-btn" onclick="switchInputTab('profitInputs', event)">Profitability & Equity</button>
+            </div>
+
+            <!-- Core Deal Inputs -->
+            <div id="coreInputs" class="input-tab-content active">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Loan Amount ($)</label>
+                        <input type="number" id="loanAmount" placeholder="250000" value="250000" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Annual Rate (%)</label>
+                        <input type="number" id="annualRate" placeholder="6.5" value="6.5" step="0.01" min="0" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label>Loan Term (Years)</label>
+                        <input type="number" id="loanTerm" placeholder="5" value="5" min="1" max="30">
+                    </div>
+                    <div class="input-group">
+                        <label>Origination Fee (%)</label>
+                        <input type="number" id="originationFee" placeholder="1.5" value="1.5" step="0.1" min="0" max="10">
+                    </div>
+                    <div class="input-group">
+                        <label>Net Operating Income ($)</label>
+                        <input type="number" id="netOperatingIncome" placeholder="0" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Current Debt Service ($)</label>
+                        <input type="number" id="currentDebtService" placeholder="0" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Depreciation ($)</label>
+                        <input type="number" id="depreciation" placeholder="0" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Interest Paid ($)</label>
+                        <input type="number" id="interestPaid" placeholder="0" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Loan Program</label>
+                        <select id="sbaProgram">
+                            <option value="none">Conventional</option>
+                            <option value="7a">SBA 7(a)</option>
+                            <option value="504">SBA 504</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Property Value ($)</label>
+                        <input type="number" id="propertyValue" placeholder="0" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Min DSCR (Policy)</label>
+                        <input type="number" id="minDscrPolicy" placeholder="1.25" value="1.25" step="0.05" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Max LTV (Policy %)</label>
+                        <input type="number" id="maxLtvPolicy" placeholder="80" value="80" step="1" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy & Stress Inputs -->
+            <div id="policyInputs" class="input-tab-content">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>X1: DSCR Min %ile (downside)</label>
+                        <input type="number" id="x1DscrPctile" placeholder="25" value="25" step="5" min="0" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label>X2: NOI Stress Scenario (%)</label>
+                        <input type="number" id="x2NoisStress" placeholder="-15" value="-15" step="1" min="-100" max="0">
+                    </div>
+                    <div class="input-group">
+                        <label>X3: Rate Stress (+bps)</label>
+                        <input type="number" id="x3RateStress" placeholder="300" value="300" step="50" min="0" max="1000">
+                    </div>
+                    <div class="input-group">
+                        <label>Min DSCR Hurdle</label>
+                        <input type="number" id="hurdleDscr" placeholder="1.25" value="1.25" step="0.05" min="0.5" max="3">
+                    </div>
+                    <div class="input-group">
+                        <label>Min Debt Yield Hurdle (%)</label>
+                        <input type="number" id="hurdleDy" placeholder="4.0" value="4.0" step="0.1" min="0" max="20">
+                    </div>
+                    <div class="input-group">
+                        <label>Max LTV Hurdle (%)</label>
+                        <input type="number" id="hurdleLtv" placeholder="80" value="80" step="1" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profitability & Equity Inputs -->
+            <div id="profitInputs" class="input-tab-content">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Equity Investment ($)</label>
+                        <input type="number" id="equityInvestment" placeholder="0" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Year 1 NOI Growth (%)</label>
+                        <input type="number" id="noiGrowthY1" placeholder="0" value="0" step="0.1" min="-100" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label>Cost of Funds (COF %)</label>
+                        <input type="number" id="costOfFunds" placeholder="2.5" value="2.5" step="0.01" min="0" max="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="header-actions">
+            <button onclick="calculateAll()">📊 Calculate All</button>
+            <button onclick="resetForm()">↻ Reset</button>
+            <button onclick="copySummary()">📋 Copy Summary</button>
+            <button onclick="exportAmortizationCSV()">📥 Export Amortization CSV</button>
+            <button onclick="saveScenario()">💾 Save Scenario</button>
+            <button onclick="loadScenario()">📂 Load Scenario</button>
+        </div>
+
+        <!-- Quick Loan Program Loader -->
+        <div class="section">
+            <h2>Quick Loan Program Loader</h2>
+            <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 var(--space-12) 0;">
+                Click a button to load typical parameters for each program
+            </p>
+            <div class="quick-sba">
+                <button class="sba-btn" onclick="loadSBA7a()">📘 SBA 7(a) (Standard)</button>
+                <button class="sba-btn" onclick="loadSBA504()">📗 SBA 504 (Real Estate)</button>
+                <button class="sba-btn" onclick="loadConventional()">📙 Conventional</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-grid" id="resultsGrid" style="display: none;">
+            <div class="result-card">
+                <div class="result-label">Monthly Payment</div>
+                <div class="result-value" id="monthlyPayment">$0.00</div>
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Principal + Interest</span>
+                        <span class="detail-value" id="principalInterest">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Loan Cost</span>
+                        <span class="detail-value" id="totalCost">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-label">Loan Summary</div>
+                <div class="result-value" id="loanTermDisplay">5 Years</div>
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Loan Amount</span>
+                        <span class="detail-value" id="displayLoanAmount">$250,000.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Months</span>
+                        <span class="detail-value" id="totalMonths">60</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Interest</span>
+                        <span class="detail-value" id="totalInterest">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Loan to Value</span>
+                        <span class="detail-value" id="ltvRatio">0.00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-label">Bank Profitability</div>
+                <div class="result-value" id="bankProfit">$0.00</div>
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Origination Fee Revenue</span>
+                        <span class="detail-value" id="origFeeRevenue">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Interest Income</span>
+                        <span class="detail-value" id="interestIncome">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-label">Debt Service Coverage</div>
+                <div class="result-value" id="dscr">0.00x</div>
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Adjusted NOI</span>
+                        <span class="detail-value" id="adjustedNoi">$0.00</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Annual Debt Service</span>
+                        <span class="detail-value" id="totalAnnualDebtService">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for Detailed Views -->
+        <div id="tabsContainer" style="display: none;">
+            <div class="section">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('amortization', event)">📅 Amortization Schedule</button>
+                    <button class="tab-btn" onclick="switchTab('metrics', event)">📈 Financial Metrics</button>
+                    <button class="tab-btn" onclick="switchTab('programs', event)">📋 Program Details</button>
+                </div>
+
+                <!-- Amortization Tab -->
+                <div id="amortization" class="tab-content active">
+                    <p style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: var(--space-12);">
+                        Complete payment schedule showing principal, interest, and remaining balance for each month
+                    </p>
+                    <div class="amortization-scroll">
+                        <table class="amortization-table">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Payment</th>
+                                    <th>Principal</th>
+                                    <th>Interest</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amortizationBody">
+                                <tr><td colspan="5" class="empty-state">Calculate to see amortization schedule</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Metrics Tab -->
+                <div id="metrics" class="tab-content">
+                    <div class="summary-box">
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-item-label">APR</div>
+                                <div class="summary-item-value" id="aprDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">DSCR</div>
+                                <div class="summary-item-value" id="dscrMetrics">0.00x</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Interest Pct of Total</div>
+                                <div class="summary-item-value" id="interestPctDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Bank Net Margin</div>
+                                <div class="summary-item-value" id="marginDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Max Loan by DSCR</div>
+                                <div class="summary-item-value" id="maxLoanByDscrDisplay">$0.00</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Max Loan by LTV</div>
+                                <div class="summary-item-value" id="maxLoanByLtvDisplay">$0.00</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Constrained Loan</div>
+                                <div class="summary-item-value" id="constrainedLoanDisplay">$0.00</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Debt Yield</div>
+                                <div class="summary-item-value" id="debtYieldDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Loan Constant</div>
+                                <div class="summary-item-value" id="loanConstantDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Breakeven NOI</div>
+                                <div class="summary-item-value" id="breakevenNoiDisplay">$0.00</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">NOI Cushion</div>
+                                <div class="summary-item-value" id="noiCushionDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">P1: Equity Multiple</div>
+                                <div class="summary-item-value" id="p1EquityMultDisplay">0.00x</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">P2: IRR (Cash-on-Cash)</div>
+                                <div class="summary-item-value" id="p2IrrDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">P1: Spread (%)</div>
+                                <div class="summary-item-value" id="p1SpreadDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">P1: Simple ROE Proxy (%)</div>
+                                <div class="summary-item-value" id="p1RoeProxyDisplay">0.00%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Policy Traffic Lights (X1) -->
+                    <div class="summary-box" style="margin-top: var(--space-16);">
+                        <h4 style="margin-top: 0; margin-bottom: var(--space-12); color: var(--color-primary); font-size: 14px;">📊 Policy Traffic Lights (X1)</h4>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-item-label">DSCR Status</div>
+                                <div style="font-size: 16px; font-weight: 700; margin-top: var(--space-4);" id="dscrTrafficLight">●</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">LTV Status</div>
+                                <div style="font-size: 16px; font-weight: 700; margin-top: var(--space-4);" id="ltvTrafficLight">●</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Debt Yield Status</div>
+                                <div style="font-size: 16px; font-weight: 700; margin-top: var(--space-4);" id="dyTrafficLight">●</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stress Test & Downside Section -->
+                    <div class="summary-box" style="margin-top: var(--space-16);">
+                        <h4 style="margin-top: 0; margin-bottom: var(--space-12); color: var(--color-primary); font-size: 14px;">Stress Test (+200 bps Rate, –10% NOI)</h4>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-item-label">DSCR Base</div>
+                                <div class="summary-item-value" id="dscrBaseDisplay">0.00x</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">DSCR Stressed</div>
+                                <div class="summary-item-value" id="dscrStressedDisplay">0.00x</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">DY Base</div>
+                                <div class="summary-item-value" id="dyBaseDisplay">0.00%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">DY Stressed</div>
+                                <div class="summary-item-value" id="dyStressedDisplay">0.00%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Program Details Tab -->
+                <div id="programs" class="tab-content">
+                    <div class="summary-box">
+                        <h3 style="margin-top: 0; margin-bottom: var(--space-12); color: var(--color-primary);" id="programTitle">Program Details</h3>
+                        <div id="sbaDetails">
+                            <p style="color: var(--color-text-secondary);">Select or enter a loan program to see details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        function formatPercent(value) {
+            return (value * 100).toFixed(2) + '%';
+        }
+
+        // Helper: Calculate monthly payment for a given loan amount
+        function paymentForLoan(loanAmount, annualRate, termYears) {
+            if (loanAmount <= 0 || termYears <= 0) return 0;
+            const monthlyRate = annualRate / 100 / 12;
+            const numberOfPayments = termYears * 12;
+            if (monthlyRate === 0) {
+                return loanAmount / numberOfPayments;
+            }
+            return loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+        }
+
+        // Helper: Calculate max loan by DSCR constraint (binary search)
+        function maxLoanByDSCR(noi, minDSCR, annualRate, termYears, currentDebtService) {
+            if (noi <= 0 || minDSCR <= 0 || termYears <= 0) return 0;
+            
+            // Binary search for max loan amount
+            let low = 0;
+            let high = noi * 10; // Start with a reasonable upper bound
+            let maxLoan = 0;
+            const tolerance = 1; // $1 precision
+            
+            for (let i = 0; i < 100; i++) {
+                const mid = (low + high) / 2;
+                const monthlyPayment = paymentForLoan(mid, annualRate, termYears);
+                const annualPayment = monthlyPayment * 12;
+                const totalDebtService = currentDebtService + annualPayment;
+                const calculatedDscr = totalDebtService > 0 ? noi / totalDebtService : 0;
+                
+                if (calculatedDscr >= minDSCR) {
+                    maxLoan = mid;
+                    low = mid;
+                } else {
+                    high = mid;
+                }
+                
+                if (high - low < tolerance) break;
+            }
+            
+            return Math.max(0, maxLoan);
+        }
+
+        // Helper: Calculate max loan by LTV constraint
+        function maxLoanByLTV(propertyValue, maxLtvPct) {
+            if (propertyValue <= 0 || maxLtvPct <= 0) return 0;
+            return propertyValue * (maxLtvPct / 100);
+        }
+
+        // U2 Helpers: Debt Yield, Loan Constant, Breakeven NOI, NOI Cushion
+        function calculateDebtYield(noi, loanAmount) {
+            if (loanAmount <= 0) return 0;
+            return (noi / loanAmount) * 100;
+        }
+
+        function loanConstant(annualDebtService, loanAmount) {
+            if (loanAmount <= 0) return 0;
+            return (annualDebtService / loanAmount) * 100;
+        }
+
+        function breakevenNOI(annualDebtService) {
+            return annualDebtService;
+        }
+
+        function noiCushionPct(noi, breakevenNoi) {
+            if (breakevenNoi <= 0) return 0;
+            return ((noi - breakevenNoi) / breakevenNoi) * 100;
+        }
+
+        // U3 Helper: Stress test calculation
+        function runStress(inputs, stressParams) {
+            const { rateBpsUp = 200, noiDownPct = 10 } = stressParams;
+            
+            // Stressed parameters
+            const stressedRate = inputs.annualRate + (rateBpsUp / 100);
+            const stressedNoi = inputs.netOperatingIncome * (1 - noiDownPct / 100);
+            const stressedDepr = inputs.depreciation;
+            const stressedInt = inputs.interestPaid;
+            const stressedAdjNoi = stressedNoi + stressedDepr + stressedInt;
+            
+            // Stressed debt service (on proposed new loan)
+            const stressedMonthlyPayment = paymentForLoan(inputs.loanAmount, stressedRate, inputs.loanTerm);
+            const stressedAnnualDebtService = stressedMonthlyPayment * 12 + inputs.currentDebtService;
+            
+            // Stressed metrics
+            const stressedDscr = stressedAnnualDebtService > 0 ? stressedAdjNoi / stressedAnnualDebtService : 0;
+            const stressedDy = calculateDebtYield(stressedAdjNoi, inputs.loanAmount);
+            
+            return {
+                stressedRate,
+                stressedNoi,
+                stressedAdjNoi,
+                stressedAnnualDebtService,
+                stressedDscr,
+                stressedDy
+            };
+        }
+
+        // P1: Equity Multiple (Year 1 NOI with growth)
+        function calculateEquityMultiple(equityInvestment, adjustedNoi, noiGrowthY1Pct) {
+            if (equityInvestment <= 0) return 0;
+            const noi1 = adjustedNoi * (1 + noiGrowthY1Pct / 100);
+            return noi1 / equityInvestment;
+        }
+
+        // P2: IRR / Cash-on-Cash (simplified Year 1)
+        function calculateCashOnCash(equityInvestment, adjustedNoi, noiGrowthY1Pct) {
+            if (equityInvestment <= 0) return 0;
+            const noi1 = adjustedNoi * (1 + noiGrowthY1Pct / 100);
+            return (noi1 / equityInvestment) * 100;
+        }
+
+        // P1: Spread = Debt Yield - Cost of Funds
+        function calculateSpread(debtYield, costOfFunds) {
+            return debtYield - costOfFunds;
+        }
+
+        // P1: Simple ROE Proxy = (Bank Profit / Equity) as %
+        function calculateSimpleRoeProxy(bankProfit, equityInvestment) {
+            if (equityInvestment <= 0) return 0;
+            return (bankProfit / equityInvestment) * 100;
+        }
+
+        // X1: Traffic Light Logic
+        function getTrafficLight(value, minHurdle, maxHurdle = null) {
+            if (maxHurdle === null) {
+                // Single hurdle (DSCR, DY) - green if >= hurdle
+                if (value >= minHurdle) return { color: '🟢', label: 'Green' };
+                if (value >= minHurdle * 0.95) return { color: '🟡', label: 'Yellow' };
+                return { color: '🔴', label: 'Red' };
+            } else {
+                // Range (LTV) - green if <= maxHurdle, red if > maxHurdle
+                if (value <= maxHurdle) return { color: '🟢', label: 'Green' };
+                if (value <= maxHurdle * 1.05) return { color: '🟡', label: 'Yellow' };
+                return { color: '🔴', label: 'Red' };
+            }
+        }
+
+        // X1: Downside DSCR at percentile
+        function runDownsideDscr(inputs, percentile) {
+            // Estimate downside as linear reduction: lower percentile = lower NOI
+            const downsideFactor = percentile / 100;
+            const downsideNoi = inputs.netOperatingIncome * downsideFactor;
+            const downsideAdjNoi = downsideNoi + inputs.depreciation + inputs.interestPaid;
+            const proposedDebtService = paymentForLoan(inputs.loanAmount, inputs.annualRate, inputs.loanTerm) * 12;
+            const totalDebtService = inputs.currentDebtService + proposedDebtService;
+            return totalDebtService > 0 ? downsideAdjNoi / totalDebtService : 0;
+        }
+
+        // X2: NOI Stress Scenario
+        function runNoiStress(inputs, noiStressPct) {
+            const stressedNoi = inputs.netOperatingIncome * (1 + noiStressPct / 100);
+            const stressedAdjNoi = stressedNoi + inputs.depreciation + inputs.interestPaid;
+            const proposedDebtService = paymentForLoan(inputs.loanAmount, inputs.annualRate, inputs.loanTerm) * 12;
+            const totalDebtService = inputs.currentDebtService + proposedDebtService;
+            return totalDebtService > 0 ? stressedAdjNoi / totalDebtService : 0;
+        }
+
+        // X3: Rate Shock Scenario
+        function runRateShock(inputs, rateBpsUp) {
+            const shockedRate = inputs.annualRate + (rateBpsUp / 100);
+            const shockedMonthlyPayment = paymentForLoan(inputs.loanAmount, shockedRate, inputs.loanTerm);
+            const shockedDebtService = shockedMonthlyPayment * 12 + inputs.currentDebtService;
+            const adjustedNoi = inputs.netOperatingIncome + inputs.depreciation + inputs.interestPaid;
+            return {
+                shockedRate,
+                shockedDscr: shockedDebtService > 0 ? adjustedNoi / shockedDebtService : 0
+            };
+        }
+
+        function getInputs() {
+            return {
+                loanAmount: parseFloat(document.getElementById('loanAmount').value) || 0,
+                annualRate: parseFloat(document.getElementById('annualRate').value) || 0,
+                loanTerm: parseFloat(document.getElementById('loanTerm').value) || 1,
+                originationFee: parseFloat(document.getElementById('originationFee').value) || 0,
+                propertyValue: parseFloat(document.getElementById('propertyValue').value) || 0,
+                netOperatingIncome: parseFloat(document.getElementById('netOperatingIncome').value) || 0,
+                currentDebtService: parseFloat(document.getElementById('currentDebtService').value) || 0,
+                depreciation: parseFloat(document.getElementById('depreciation').value) || 0,
+                interestPaid: parseFloat(document.getElementById('interestPaid').value) || 0,
+                sbaProgram: document.getElementById('sbaProgram').value,
+                minDscrPolicy: parseFloat(document.getElementById('minDscrPolicy').value) || 1.25,
+                maxLtvPolicy: parseFloat(document.getElementById('maxLtvPolicy').value) || 80
+            };
+        }
+
+        function calculateAll() {
+            const inputs = getInputs();
+            
+            if (inputs.loanAmount <= 0 || inputs.annualRate < 0 || inputs.loanTerm <= 0) {
+                alert('Please enter valid loan parameters');
+                return;
+            }
+
+            // Core calculations
+            const monthlyRate = inputs.annualRate / 100 / 12;
+            const numberOfPayments = inputs.loanTerm * 12;
+            
+            let monthlyPayment;
+            if (monthlyRate === 0) {
+                monthlyPayment = inputs.loanAmount / numberOfPayments;
+            } else {
+                monthlyPayment = inputs.loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+            }
+
+            const totalPaid = monthlyPayment * numberOfPayments;
+            const totalInterest = totalPaid - inputs.loanAmount;
+            
+            // Bank profitability
+            const originationFeeAmount = inputs.loanAmount * (inputs.originationFee / 100);
+            const interestIncome = totalInterest;
+            const netProfit = originationFeeAmount + interestIncome;
+            const netMargin = (netProfit / inputs.loanAmount) * 100;
+
+            // DSCR Calculations
+            const adjustedNoi = inputs.netOperatingIncome + inputs.depreciation + inputs.interestPaid;
+            const proposedAnnualDebtService = monthlyPayment * 12;
+            const totalAnnualDebtService = inputs.currentDebtService + proposedAnnualDebtService;
+            const dscr = totalAnnualDebtService > 0 ? adjustedNoi / totalAnnualDebtService : 0;
+
+            // Display results
+            document.getElementById('monthlyPayment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('principalInterest').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('totalCost').textContent = formatCurrency(totalPaid);
+            document.getElementById('loanTermDisplay').textContent = inputs.loanTerm + ' Year' + (inputs.loanTerm !== 1 ? 's' : '');
+            document.getElementById('displayLoanAmount').textContent = formatCurrency(inputs.loanAmount);
+            document.getElementById('totalMonths').textContent = numberOfPayments;
+            document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
+            document.getElementById('bankProfit').textContent = formatCurrency(netProfit);
+            document.getElementById('origFeeRevenue').textContent = formatCurrency(originationFeeAmount);
+            document.getElementById('interestIncome').textContent = formatCurrency(interestIncome);
+            document.getElementById('dscr').textContent = dscr.toFixed(2) + 'x';
+            document.getElementById('adjustedNoi').textContent = formatCurrency(adjustedNoi);
+            document.getElementById('totalAnnualDebtService').textContent = formatCurrency(totalAnnualDebtService);
+
+            // Calculate LTV
+            let ltv = 0;
+            if (inputs.propertyValue > 0) {
+                ltv = (inputs.loanAmount / inputs.propertyValue) * 100;
+            }
+            document.getElementById('ltvRatio').textContent = ltv.toFixed(2) + '%';
+
+            // Metrics tab
+            document.getElementById('aprDisplay').textContent = inputs.annualRate.toFixed(3) + '%';
+            document.getElementById('dscrMetrics').textContent = dscr.toFixed(2) + 'x';
+            const interestPct = (totalInterest / inputs.loanAmount) * 100;
+            document.getElementById('interestPctDisplay').textContent = interestPct.toFixed(2) + '%';
+            document.getElementById('marginDisplay').textContent = netMargin.toFixed(2) + '%';
+
+            // Loan sizing calculations
+            const adjustedNoiForSizing = inputs.netOperatingIncome + inputs.depreciation + inputs.interestPaid;
+            const maxByDscr = maxLoanByDSCR(adjustedNoiForSizing, inputs.minDscrPolicy, inputs.annualRate, inputs.loanTerm, inputs.currentDebtService);
+            const maxByLtv = maxLoanByLTV(inputs.propertyValue, inputs.maxLtvPolicy);
+            const constrainedLoan = Math.min(maxByDscr, maxByLtv > 0 ? maxByLtv : maxByDscr);
+
+            document.getElementById('maxLoanByDscrDisplay').textContent = formatCurrency(maxByDscr);
+            document.getElementById('maxLoanByLtvDisplay').textContent = formatCurrency(maxByLtv);
+            document.getElementById('constrainedLoanDisplay').textContent = formatCurrency(constrainedLoan);
+
+            // U2: Debt Yield, Loan Constant, Breakeven NOI, NOI Cushion
+            const debtYield = calculateDebtYield(adjustedNoi, inputs.loanAmount);
+            const loanConst = loanConstant(proposedAnnualDebtService, inputs.loanAmount);
+            const breakevenNoi = breakevenNOI(proposedAnnualDebtService);
+            const noiCushion = noiCushionPct(adjustedNoi, breakevenNoi);
+
+            document.getElementById('debtYieldDisplay').textContent = debtYield.toFixed(2) + '%';
+            document.getElementById('loanConstantDisplay').textContent = loanConst.toFixed(2) + '%';
+            document.getElementById('breakevenNoiDisplay').textContent = formatCurrency(breakevenNoi);
+            document.getElementById('noiCushionDisplay').textContent = noiCushion.toFixed(2) + '%';
+
+            // U3: Stress Test
+            const stress = runStress(inputs, { rateBpsUp: 200, noiDownPct: 10 });
+            const baseDy = calculateDebtYield(adjustedNoi, inputs.loanAmount);
+            
+            document.getElementById('dscrBaseDisplay').textContent = dscr.toFixed(2) + 'x';
+            document.getElementById('dscrStressedDisplay').textContent = stress.stressedDscr.toFixed(2) + 'x';
+            document.getElementById('dyBaseDisplay').textContent = baseDy.toFixed(2) + '%';
+            document.getElementById('dyStressedDisplay').textContent = stress.stressedDy.toFixed(2) + '%';
+
+            // P1 & P2: Return Metrics
+            const equityInv = parseFloat(document.getElementById('equityInvestment').value) || 0;
+            const noiGrowY1 = parseFloat(document.getElementById('noiGrowthY1').value) || 0;
+            const p1EquityMult = calculateEquityMultiple(equityInv, adjustedNoi, noiGrowY1);
+            const p2Irr = calculateCashOnCash(equityInv, adjustedNoi, noiGrowY1);
+
+            document.getElementById('p1EquityMultDisplay').textContent = p1EquityMult.toFixed(2) + 'x';
+            document.getElementById('p2IrrDisplay').textContent = p2Irr.toFixed(2) + '%';
+
+            // P1: Spread & Simple ROE Proxy
+            const costOfFunds = parseFloat(document.getElementById('costOfFunds').value) || 0;
+            const p1Spread = calculateSpread(debtYield, costOfFunds);
+            const p1RoeProxy = calculateSimpleRoeProxy(netProfit, equityInv);
+
+            document.getElementById('p1SpreadDisplay').textContent = p1Spread.toFixed(2) + '%';
+            document.getElementById('p1RoeProxyDisplay').textContent = p1RoeProxy.toFixed(2) + '%';
+
+            // X1: Traffic Lights
+            const hurdleDscr = parseFloat(document.getElementById('hurdleDscr').value) || 1.25;
+            const hurdleDy = parseFloat(document.getElementById('hurdleDy').value) || 4.0;
+            const hurdleLtv = parseFloat(document.getElementById('hurdleLtv').value) || 80;
+
+            const dscrLight = getTrafficLight(dscr, hurdleDscr);
+            const dyLight = getTrafficLight(debtYield, hurdleDy);
+            const ltvLight = getTrafficLight(ltv, null, hurdleLtv);
+
+            document.getElementById('dscrTrafficLight').textContent = dscrLight.color + ' ' + dscrLight.label;
+            document.getElementById('dyTrafficLight').textContent = dyLight.color + ' ' + dyLight.label;
+            document.getElementById('ltvTrafficLight').textContent = ltvLight.color + ' ' + ltvLight.label;
+
+            // X1, X2, X3: Downside Scenarios
+            const x1Pctile = parseFloat(document.getElementById('x1DscrPctile').value) || 25;
+            const x2NoiStress = parseFloat(document.getElementById('x2NoisStress').value) || -15;
+            const x3RateBps = parseFloat(document.getElementById('x3RateStress').value) || 300;
+
+            const x1Dscr = runDownsideDscr(inputs, x1Pctile);
+            const x2Dscr = runNoiStress(inputs, x2NoiStress);
+            const x3Result = runRateShock(inputs, x3RateBps);
+
+            // TODO: Uncomment these when UI elements x1DscrDisplay, x2DscrDisplay, x3DscrDisplay, x3RateDisplay are added to the Metrics tab
+            // document.getElementById('x1DscrDisplay').textContent = x1Dscr.toFixed(2) + 'x';
+            // document.getElementById('x2DscrDisplay').textContent = x2Dscr.toFixed(2) + 'x';
+            // document.getElementById('x3DscrDisplay').textContent = x3Result.shockedDscr.toFixed(2) + 'x';
+            // document.getElementById('x3RateDisplay').textContent = x3Result.shockedRate.toFixed(3) + '%';
+
+            // Amortization schedule
+            generateAmortization(inputs.loanAmount, monthlyRate, numberOfPayments, monthlyPayment);
+
+            // Program details
+            displayProgramDetails(inputs.sbaProgram, inputs.loanAmount, inputs.loanTerm, inputs.propertyValue);
+
+            // Show results
+            document.getElementById('resultsGrid').style.display = 'grid';
+            document.getElementById('tabsContainer').style.display = 'block';
+        }
+
+        function generateAmortization(principal, monthlyRate, numberOfPayments, monthlyPayment) {
+            const tbody = document.getElementById('amortizationBody');
+            tbody.innerHTML = '';
+
+            let balance = principal;
+            let totalPrincipal = 0;
+            let totalInterestPaid = 0;
+
+            for (let month = 1; month <= numberOfPayments; month++) {
+                const interestPayment = balance * monthlyRate;
+                const principalPayment = monthlyPayment - interestPayment;
+                balance -= principalPayment;
+                totalPrincipal += principalPayment;
+                totalInterestPaid += interestPayment;
+
+                // Show every month for first 12, then every 6 months, plus last month
+                const shouldShow = month <= 12 || month % 6 === 0 || month === numberOfPayments;
+
+                if (shouldShow) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${month}</td>
+                        <td>${formatCurrency(monthlyPayment)}</td>
+                        <td>${formatCurrency(principalPayment)}</td>
+                        <td>${formatCurrency(interestPayment)}</td>
+                        <td>${formatCurrency(Math.max(0, balance))}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+
+                // Add row separator after first 12 months if there are more
+                if (month === 12 && numberOfPayments > 12) {
+                    const sepRow = document.createElement('tr');
+                    sepRow.innerHTML = '<td colspan="5" style="text-align: center; color: var(--color-text-secondary); padding: var(--space-8);">... months 13-' + (numberOfPayments - 1) + ' ...</td>';
+                    tbody.appendChild(sepRow);
+                }
+            }
+        }
+
+        function displayProgramDetails(program, loanAmount, term, propertyValue) {
+            const details = document.getElementById('sbaDetails');
+            const titleEl = document.getElementById('programTitle');
+            
+            const programs = {
+                '7a': {
+                    name: 'SBA 7(a) Loan Program',
+                    features: [
+                        '• Loan Amount: Up to $5 million',
+                        '• Terms: Generally 5-10 years for working capital, up to 10+ years for equipment',
+                        '• Rates: Prime + 2.25-2.75%',
+                        '• Guarantee: 75-80% SBA guarantee',
+                        '• Typical Use Cases: Working capital, equipment, real estate, inventory',
+                        '• Down Payment: Typically 10-20%',
+                        '• SBA Fees: Usually 2-3% of guaranteed portion'
+                    ],
+                    fitment: fitsSBA7a(loanAmount, term)
+                },
+                '504': {
+                    name: 'SBA 504 Loan Program',
+                    features: [
+                        '• Loan Amount: Up to $5.5 million',
+                        '• Terms: Up to 20 years (equipment) or 25 years (real estate)',
+                        '• Rates: Below-market fixed rates',
+                        '• Structure: 50% conventional, 50% SBA loan',
+                        '• Guarantee: 100% SBA guarantee on 2nd lien',
+                        '• Typical Use Cases: Real estate, equipment, business ownership',
+                        '• Down Payment: 10% required',
+                        '• Processing: 30-45 days typical'
+                    ],
+                    fitment: fitsSBA504(loanAmount, term)
+                },
+                'none': {
+                    name: 'Conventional Loan',
+                    features: [
+                        '• Loan Amount: Unlimited (based on creditworthiness)',
+                        '• Terms: 3-20 years typical',
+                        '• Rates: Market-based, varies by credit profile',
+                        '• Guarantee: No government guarantee',
+                        '• Typical Use Cases: Various business purposes',
+                        '• Down Payment: 15-30% typical',
+                        '• Processing: 5-10 business days typical'
+                    ],
+                    fitment: 'Standard commercial lending terms apply'
+                }
+            };
+
+            const prog = programs[program] || programs['none'];
+            titleEl.textContent = prog.name;
+            
+            let html = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-20); margin-bottom: var(--space-16);">
+                    <div>
+                        <h5 style="font-size: 13px; font-weight: 600; margin-top: 0; margin-bottom: var(--space-8);">Key Features</h5>
+                        <ul style="margin: 0; padding: 0; list-style: none; font-size: 12px; line-height: 1.8;">
+            `;
+
+            prog.features.forEach(feature => {
+                html += `<li style="color: var(--color-text); margin-bottom: var(--space-4);">${feature}</li>`;
+            });
+
+            html += `
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 style="font-size: 13px; font-weight: 600; margin-top: 0; margin-bottom: var(--space-8);">Fit Analysis</h5>
+                        <div style="padding: var(--space-12); background-color: rgba(33, 128, 141, 0.05); border-radius: var(--radius-base); border-left: 3px solid var(--color-primary); font-size: 12px; color: var(--color-text);">
+                            <strong>Loan Amount:</strong> ${formatCurrency(loanAmount)}<br>
+                            <strong>Term:</strong> ${term} years<br>
+                            ${propertyValue > 0 ? `<strong>LTV:</strong> ${((loanAmount / propertyValue) * 100).toFixed(2)}%<br>` : ''}
+                            <strong>Assessment:</strong> ${prog.fitment}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            details.innerHTML = html;
+        }
+
+        function fitsSBA7a(amount, term) {
+            if (amount > 5000000) return '❌ Exceeds SBA 7(a) limit ($5M)';
+            if (amount < 50000) return '⚠️ Small for SBA 7(a); consider conventional';
+            if (term < 5) return '⚠️ Short term; 7(a) better for 5-10 years';
+            if (term > 10) return '✓ Fits SBA 7(a) profile; verify with lender';
+            return '✓ Good fit for SBA 7(a) program';
+        }
+
+        function fitsSBA504(amount, term) {
+            if (amount > 5500000) return '❌ Exceeds SBA 504 limit ($5.5M)';
+            if (term < 10) return '⚠️ Short term; 504 better for 10-25 years';
+            if (term > 25) return '⚠️ Long term; may exceed 504 maximums';
+            return '✓ Excellent fit for SBA 504 program';
+        }
+
+        function switchTab(tabName, evt) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            if (evt && evt.target) evt.target.classList.add('active');
+        }
+
+        function switchInputTab(tabName, evt) {
+            // Hide all input tab contents
+            document.querySelectorAll('.input-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Reset all input tab buttons
+            document.querySelectorAll('.input-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+        }
+
+        function loadSBA7a() {
+            document.getElementById('loanAmount').value = 500000;
+            document.getElementById('annualRate').value = 7.5;
+            document.getElementById('loanTerm').value = 7;
+            document.getElementById('originationFee').value = 2.5;
+            document.getElementById('netOperatingIncome').value = 250000;
+            document.getElementById('currentDebtService').value = 60000;
+            document.getElementById('depreciation').value = 50000;
+            document.getElementById('interestPaid').value = 25000;
+            document.getElementById('sbaProgram').value = '7a';
+            calculateAll();
+        }
+
+        function loadSBA504() {
+            document.getElementById('loanAmount').value = 1000000;
+            document.getElementById('annualRate').value = 6.5;
+            document.getElementById('loanTerm').value = 20;
+            document.getElementById('originationFee').value = 1.5;
+            document.getElementById('netOperatingIncome').value = 400000;
+            document.getElementById('currentDebtService').value = 100000;
+            document.getElementById('depreciation').value = 75000;
+            document.getElementById('interestPaid').value = 40000;
+            document.getElementById('sbaProgram').value = '504';
+            calculateAll();
+        }
+
+        function loadConventional() {
+            document.getElementById('loanAmount').value = 250000;
+            document.getElementById('annualRate').value = 6.5;
+            document.getElementById('loanTerm').value = 5;
+            document.getElementById('originationFee').value = 1.0;
+            document.getElementById('netOperatingIncome').value = 150000;
+            document.getElementById('currentDebtService').value = 0;
+            document.getElementById('depreciation').value = 30000;
+            document.getElementById('interestPaid').value = 0;
+            document.getElementById('sbaProgram').value = 'none';
+            calculateAll();
+        }
+
+        function resetForm() {
+            document.getElementById('loanAmount').value = 250000;
+            document.getElementById('annualRate').value = 6.5;
+            document.getElementById('loanTerm').value = 5;
+            document.getElementById('originationFee').value = 1.5;
+            document.getElementById('netOperatingIncome').value = 0;
+            document.getElementById('currentDebtService').value = 0;
+            document.getElementById('depreciation').value = 0;
+            document.getElementById('interestPaid').value = 0;
+            document.getElementById('propertyValue').value = 0;
+            document.getElementById('sbaProgram').value = 'none';
+            document.getElementById('resultsGrid').style.display = 'none';
+            document.getElementById('tabsContainer').style.display = 'none';
+        }
+
+        function copySummary() {
+            const inputs = getInputs();
+            const monthlyPayment = document.getElementById('monthlyPayment').textContent;
+            const totalInterest = document.getElementById('totalInterest').textContent;
+            const bankProfit = document.getElementById('bankProfit').textContent;
+            const ltvRatio = document.getElementById('ltvRatio').textContent;
+            const dscr = document.getElementById('dscr').textContent;
+            const adjustedNoi = document.getElementById('adjustedNoi').textContent;
+
+            const summary = `DEAL ANALYSIS SUMMARY
+=======================================
+Loan Amount: ${formatCurrency(inputs.loanAmount)}
+Property Value: ${inputs.propertyValue > 0 ? formatCurrency(inputs.propertyValue) : 'N/A'}
+Loan to Value: ${ltvRatio}
+Interest Rate: ${inputs.annualRate.toFixed(2)}%
+Term: ${inputs.loanTerm} years
+Origination Fee: ${inputs.originationFee.toFixed(1)}%
+Loan Program: ${inputs.sbaProgram === 'none' ? 'Conventional' : 'SBA ' + inputs.sbaProgram.toUpperCase()}
+
+FINANCIAL INPUTS
+=======================================
+Net Operating Income: ${formatCurrency(inputs.netOperatingIncome)}
+Current Debt Service: ${formatCurrency(inputs.currentDebtService)}
+Depreciation: ${formatCurrency(inputs.depreciation)}
+Interest Paid: ${formatCurrency(inputs.interestPaid)}
+
+RESULTS
+=======================================
+Monthly Payment: ${monthlyPayment}
+Total Interest: ${totalInterest}
+Bank Net Profit: ${bankProfit}
+
+DEBT SERVICE COVERAGE
+=======================================
+Adjusted NOI: ${adjustedNoi}
+DSCR: ${dscr}
+
+Copied to clipboard!`;
+
+            navigator.clipboard.writeText(summary).then(() => {
+                alert('Deal summary copied to clipboard!');
+            });
+        }
+
+        // Load and display clients from localStorage
+        function loadClientsDirectory() {
+            const clients = JSON.parse(localStorage.getItem('clients')) || [];
+            const directory = document.getElementById('clientsDirectory');
+            
+            if (clients.length === 0) {
+                directory.innerHTML = `
+                    <div style="padding: var(--space-16); background-color: rgba(33, 128, 141, 0.05); border-radius: var(--radius-base); border: 1px dashed var(--color-border); text-align: center; color: var(--color-text-secondary); font-size: 13px;">
+                        No clients yet. Add clients from your <strong>Client Hub</strong> to see them here.
+                    </div>
+                `;
+                return;
+            }
+
+            directory.innerHTML = clients.map((client, index) => `
+                <div style="padding: var(--space-16); background-color: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: var(--radius-base); box-shadow: var(--shadow-sm); transition: all 250ms ease;" onmouseover="this.style.boxShadow='var(--shadow-md)'; this.style.borderColor='rgba(33, 128, 141, 0.25)'" onmouseout="this.style.boxShadow='var(--shadow-sm)'; this.style.borderColor='rgba(51, 65, 85, 0.12)'">
+                    <div style="font-weight: 700; color: var(--color-text); margin-bottom: var(--space-8); font-size: 15px;">${client.businessName}</div>
+                    <div style="display: inline-block; padding: var(--space-4) var(--space-10); background-color: rgba(33, 128, 141, 0.1); color: var(--color-primary); border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: var(--space-12);">
+                        ${client.businessType}
+                    </div>
+                    ${client.businessPhone ? `
+                        <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: var(--space-4);">
+                            📞 ${client.businessPhone}
+                        </div>
+                    ` : ''}
+                    ${client.businessEmail ? `
+                        <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: var(--space-12);">
+                            📧 ${client.businessEmail}
+                        </div>
+                    ` : ''}
+                    <button onclick="runDealAnalysis('${encodeURIComponent(client.businessName)}')" style="width: 100%; padding: var(--space-10) var(--space-12); background-color: var(--color-primary); color: white; border: none; border-radius: var(--radius-base); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 250ms ease;" onmouseover="this.style.backgroundColor='var(--color-primary-hover)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.backgroundColor='var(--color-primary)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)'">
+                        💼 Run Deal Analysis
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function runDealAnalysis(clientName) {
+            // Construct URL with client name parameter
+            const url = 'deal-analyzer.html?client=' + clientName;
+            window.open(url, '_blank');
+        }
+
+        // Download package function
+        function downloadPackage() {
+            alert('📦 Banking Tools Package\n\nThis app is now fully standalone and independent!\n\nTo get the complete banking tools package:\n\n1. Download from your bank\'s resource center\n2. Extract the ZIP file\n3. Open deal-analyzer.html in your browser\n4. No installation required\n\nAll tools work completely offline.');
+        }
+
+        // X3: Export Amortization CSV
+        function exportAmortizationCSV() {
+            const tbody = document.getElementById('amortizationBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0 || rows[0].cells[0].textContent.includes('empty')) {
+                alert('No amortization schedule to export. Please calculate first.');
+                return;
+            }
+
+            let csv = 'Month,Payment,Principal,Interest,Balance\n';
+            rows.forEach(row => {
+                if (!row.textContent.includes('...')) {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length === 5) {
+                        const month = cells[0].textContent;
+                        const payment = cells[1].textContent.replace(/[$,]/g, '');
+                        const principal = cells[2].textContent.replace(/[$,]/g, '');
+                        const interest = cells[3].textContent.replace(/[$,]/g, '');
+                        const balance = cells[4].textContent.replace(/[$,]/g, '');
+                        csv += `${month},${payment},${principal},${interest},${balance}\n`;
+                    }
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `amortization_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // X2: Save Scenario to localStorage
+        function saveScenario() {
+            const name = prompt('Enter scenario name:');
+            if (!name) return;
+
+            const inputs = getInputs();
+            const scenarios = JSON.parse(localStorage.getItem('dealScenarios')) || {};
+            scenarios[name] = {
+                ...inputs,
+                costOfFunds: parseFloat(document.getElementById('costOfFunds').value) || 0,
+                hurdleDscr: parseFloat(document.getElementById('hurdleDscr').value) || 1.25,
+                hurdleDy: parseFloat(document.getElementById('hurdleDy').value) || 4.0,
+                hurdleLtv: parseFloat(document.getElementById('hurdleLtv').value) || 80,
+                equityInvestment: parseFloat(document.getElementById('equityInvestment').value) || 0,
+                noiGrowthY1: parseFloat(document.getElementById('noiGrowthY1').value) || 0,
+                x1DscrPctile: parseFloat(document.getElementById('x1DscrPctile').value) || 25,
+                x2NoisStress: parseFloat(document.getElementById('x2NoisStress').value) || -15,
+                x3RateStress: parseFloat(document.getElementById('x3RateStress').value) || 300,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('dealScenarios', JSON.stringify(scenarios));
+            alert(`✓ Scenario "${name}" saved!`);
+        }
+
+        // X2: Load Scenario from localStorage
+        function loadScenario() {
+            const scenarios = JSON.parse(localStorage.getItem('dealScenarios')) || {};
+            const names = Object.keys(scenarios);
+
+            if (names.length === 0) {
+                alert('No saved scenarios. Create and save one first.');
+                return;
+            }
+
+            const name = prompt(`Select scenario:\n\n${names.map((n, i) => `${i + 1}. ${n}`).join('\n')}\n\nEnter name:`);
+            if (!name || !scenarios[name]) {
+                alert('Scenario not found.');
+                return;
+            }
+
+            const scenario = scenarios[name];
+            document.getElementById('loanAmount').value = scenario.loanAmount;
+            document.getElementById('annualRate').value = scenario.annualRate;
+            document.getElementById('loanTerm').value = scenario.loanTerm;
+            document.getElementById('originationFee').value = scenario.originationFee;
+            document.getElementById('propertyValue').value = scenario.propertyValue;
+            document.getElementById('netOperatingIncome').value = scenario.netOperatingIncome;
+            document.getElementById('currentDebtService').value = scenario.currentDebtService;
+            document.getElementById('depreciation').value = scenario.depreciation;
+            document.getElementById('interestPaid').value = scenario.interestPaid;
+            document.getElementById('sbaProgram').value = scenario.sbaProgram;
+            document.getElementById('minDscrPolicy').value = scenario.minDscrPolicy;
+            document.getElementById('maxLtvPolicy').value = scenario.maxLtvPolicy;
+            document.getElementById('equityInvestment').value = scenario.equityInvestment || 0;
+            document.getElementById('noiGrowthY1').value = scenario.noiGrowthY1 || 0;
+            document.getElementById('x1DscrPctile').value = scenario.x1DscrPctile || 25;
+            document.getElementById('x2NoisStress').value = scenario.x2NoisStress || -15;
+            document.getElementById('x3RateStress').value = scenario.x3RateStress || 300;
+            document.getElementById('costOfFunds').value = scenario.costOfFunds || 0;
+            document.getElementById('hurdleDscr').value = scenario.hurdleDscr || 1.25;
+            document.getElementById('hurdleDy').value = scenario.hurdleDy || 4.0;
+            document.getElementById('hurdleLtv').value = scenario.hurdleLtv || 80;
+
+            alert(`✓ Scenario "${name}" loaded!`);
+            calculateAll();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            document.getElementById('resultsGrid').style.display = 'none';
+            document.getElementById('tabsContainer').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
